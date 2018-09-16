@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 import cool.GlobalVariables;
+import cool.InheritanceGraph;
 
 import java.util.HashSet;
 import java.lang.StringBuilder;
@@ -123,7 +124,8 @@ class Visitor {
         GlobalVariables.inheritanceGraph.detectCycle();
         if(GlobalVariables.inheritanceGraph.getHasCycle())
         {
-            System.out.println("Has cycle");
+            String errStr = new StringBuilder().append("Cyclic Inheritance found").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, 0, errStr);
         }
         else
             System.out.println("Has no cycle");
@@ -143,12 +145,12 @@ class Visitor {
                 if(newfeature instanceof AST.method)
                 {
                     AST.method m = (AST.method) newfeature;
-                    System.out.println("name = "+m.name);
-                    String mangeledName = GlobalVariables.inheritanceGraph.getMangledNameWithClass(1, newClass.name, m.formals, m.name);
-                    if(mangeledName == null)
-                        System.out.println("NULL");
-                    else
-                        GlobalVariables.mapMangledNames.put(mangeledName, m.typeid);
+                    System.out.println("name = "+ m.name);
+                    String mangeledName = InheritanceGraph.getMangledNameWithClass(1, newClass.name, m.formals, m.name);
+                    System.out.println(mangeledName);
+                    System.out.println(m.typeid);
+                    GlobalVariables.mapMangledNames.put(mangeledName, m.typeid);
+                    
                 }
                 System.out.println("dffdf");
             }

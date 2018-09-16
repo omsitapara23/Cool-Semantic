@@ -303,7 +303,7 @@ public class InheritanceGraph
         }
     }
 
-    public String getMangledNameWithExpression(String className, List<AST.expression> expressions, String functionName)
+    public static String getMangledNameWithExpression(String className, List<AST.expression> expressions, String functionName)
     {
         StringBuilder mangledName = new StringBuilder();
 
@@ -349,7 +349,7 @@ public class InheritanceGraph
         return mangledName.toString();
     }
 
-    public String getMangledNameWithClass(int condition, String name, List<AST.formal> formals, String functionName)
+    public static String getMangledNameWithClass(int condition, String name, List<AST.formal> formals, String functionName)
     {
         StringBuilder mangledName = new StringBuilder();
 

@@ -24,5 +24,6 @@ public class GlobalVariables
     {
         presentClass = "";
         presentFilename = "";
+        mapMangledNames = new HashMap<>();
     }
 }
