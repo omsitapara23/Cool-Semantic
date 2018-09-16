@@ -128,5 +128,36 @@ class Visitor {
         else
             System.out.println("Has no cycle");
 
+        manglingNames();
+
     }
+
+    // updating our mapMangledNames
+    private void manglingNames()
+    {
+        for(GraphNode tempNode : GlobalVariables.inheritanceGraph.getNodeList())
+        {
+            AST.class_ newClass = tempNode.getASTClass();
+            for(AST.feature newfeature : newClass.features)
+            {
+                if(newfeature instanceof AST.method)
+                {
+                    AST.method m = (AST.method) newfeature;
+                    System.out.println("name = "+m.name);
+                    String mangeledName = GlobalVariables.inheritanceGraph.getMangledNameWithClass(1, newClass.name, m.formals, m.name);
+                    if(mangeledName == null)
+                        System.out.println("NULL");
+                    else
+                        GlobalVariables.mapMangledNames.put(mangeledName, m.typeid);
+                }
+                System.out.println("dffdf");
+            }
+        }
+
+        for(String key : GlobalVariables.mapMangledNames.keySet())
+            {
+                System.out.println(key);
+            }
+    }
+
 }

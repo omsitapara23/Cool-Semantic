@@ -17,6 +17,9 @@ public class GlobalVariables
     // reports an error
     public static ErrorReporter errorReporter;
 
+    // mapping our function mangled names with its types
+    public static Map<String, String> mapMangledNames;
+
     static
     {
         presentClass = "";
