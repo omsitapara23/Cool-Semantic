@@ -15,5 +15,15 @@ public class Semantic{
 */
 	public Semantic(AST.program program){
 		//Write Semantic analyzer code here
+
+		GlobalVariables.errorReporter = new ErrorReporter() {
+			@Override
+			public void report(String filename, int lineNo, String error) {
+				reportError(filename, lineNo, error);
+			}
+		};
+
+		Visitor visitor = new Visitor();
+		program.accept(visitor);
 	}
 }
