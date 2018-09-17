@@ -146,7 +146,7 @@ class Visitor {
                 {
                     AST.method m = (AST.method) newfeature;
                     System.out.println("name = "+ m.name);
-                    String mangeledName = InheritanceGraph.getMangledNameWithClass(1, newClass.name, m.formals, m.name);
+                    String mangeledName = UtilFunctionImpl.getMangledNameWithClass(1, newClass.name, m.formals, m.name);
                     System.out.println(mangeledName);
                     System.out.println(m.typeid);
                     GlobalVariables.mapMangledNames.put(mangeledName, m.typeid);
