@@ -22,10 +22,11 @@
 
 *)
 
-class Calculator inherits Result {
+class Calculator  {
     a : Int;
     b : Int;
     r : Int;
+    sum : Int;
     inti(i : Int, j : Int) : Calculator {
         {
             a <- i;
@@ -40,9 +41,11 @@ class Calculator inherits Result {
         r <- a + b
     };
 
+
     multiplication() : Int {
         r <- a * b
     };
+
 
     subtract() : Int {
         r <- a - b
@@ -81,6 +84,14 @@ class Result inherits Calculator {
         else  calculatorObj.subtract()
         fi fi fi
     };
+};
+
+class Om  {
+
+};
+
+class Harshit inherits Om {
+
 };
 
 class Main inherits IO {

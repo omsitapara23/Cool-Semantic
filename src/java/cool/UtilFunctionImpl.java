@@ -1,6 +1,11 @@
 package cool;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import cool.AST;
+import cool.GlobalVariables;
+
 import java.lang.StringBuilder;
 
 class UtilFunctionImpl {
@@ -108,4 +113,29 @@ class UtilFunctionImpl {
         mangledName.append("_");
         return mangledName.toString();
     }
+
+    public static void checkForMethodRedination()
+    {
+        for(GraphNode tempNode : GlobalVariables.inheritanceGraph.getNodeList())
+        {
+            AST.class_ newClass = tempNode.getASTClass();
+            ArrayList<String> methods = new ArrayList<>();
+            for(AST.feature newfeature : newClass.features)
+            {
+                if(newfeature instanceof AST.method)
+                {
+                    AST.method m = (AST.method) newfeature;
+                    if(methods.contains(m.name))
+                    {
+                        String errStr = new StringBuilder().append("Redefination found for method '").append(m.name).append("' in class '").append(newClass.name).append("'").toString();
+                        GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, m.getLineNo(), errStr);
+                    }
+                    
+                    methods.add(m.name);
+                    
+                }
+            }
+        }
+    }
+
 }

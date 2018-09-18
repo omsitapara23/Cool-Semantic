@@ -26,6 +26,7 @@ public class InheritanceGraph
 
     private ArrayList<Boolean> visited = new ArrayList<>();
     private ArrayList<Boolean> checker = new ArrayList<>();
+    private ArrayList<String> cycleClass = new ArrayList<>();
 
 
     private ArrayList<String> restrictedType = new ArrayList<String>(Arrays.asList(Constants.STRING_TYPE, Constants.IO_TYPE, Constants.BOOL_TYPE, Constants.INT_TYPE));
@@ -172,6 +173,12 @@ public class InheritanceGraph
         classNameToIndex.put(Constants.BOOL_TYPE, -1);
     }
 
+    public ArrayList<String> getCyclicClass()
+    {
+        return cycleClass;
+    }
+    
+
 
     public void addNewClass(AST.class_ newClass)
     {
@@ -305,6 +312,8 @@ public class InheritanceGraph
             {
                 System.out.println("Set true for " + i);
                 hasCycle = true;
+                cycleClass.add(inheritanceGraph.get(i).getASTClass().name);
+
             }
         }
     }

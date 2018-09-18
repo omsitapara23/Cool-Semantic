@@ -1,11 +1,13 @@
 package cool;
 
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
 import cool.GlobalVariables;
 import cool.InheritanceGraph;
+import cool.ScopeTableHandler;
 
 import java.util.HashSet;
 import java.lang.StringBuilder;
@@ -109,6 +111,8 @@ class Visitor {
 
         // preparing inheritance graph
         GlobalVariables.inheritanceGraph = new InheritanceGraph();
+        ScopeTableHandler.scopeTable = new ScopeTableHandler();
+        
         for(AST.class_ cl: prog.classes) {
             GlobalVariables.presentFilename = cl.filename;
             GlobalVariables.inheritanceGraph.addNewClass(cl);
@@ -124,13 +128,20 @@ class Visitor {
         GlobalVariables.inheritanceGraph.detectCycle();
         if(GlobalVariables.inheritanceGraph.getHasCycle())
         {
-            String errStr = new StringBuilder().append("Cyclic Inheritance found").toString();
-            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, 0, errStr);
+            ArrayList<String> cycleClass = GlobalVariables.inheritanceGraph.getCyclicClass();
+            for(int i = 0; i < cycleClass.size(); i++)
+            {
+                String errStr = new StringBuilder().append("Cyclic Inheritance found for class '").append(cycleClass.get(i)).append("' and its ancestors").toString();
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, 0, errStr);
+            }
+            
         }
         else
             System.out.println("Has no cycle");
 
         manglingNames();
+
+        UtilFunctionImpl.checkForMethodRedination();
 
     }
 
