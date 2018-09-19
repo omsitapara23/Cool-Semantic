@@ -1,7 +1,6 @@
 package cool;
 
 import java.util.*;
-import java.cool.ScopeTableHandler;
 import java.lang.StringBuilder;
 
 public class GlobalVariables 

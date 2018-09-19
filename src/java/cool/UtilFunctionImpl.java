@@ -3,8 +3,11 @@ package cool;
 import java.util.ArrayList;
 import java.util.List;
 
+
 import cool.AST;
 import cool.GlobalVariables;
+import cool.ScopeTable;
+import cool.ScopeTableHandler;
 
 import java.lang.StringBuilder;
 
@@ -137,5 +140,95 @@ class UtilFunctionImpl {
             }
         }
     }
+
+    public static void AttrChecker(AST.attr attribute)
+    {
+        if(ScopeTableHandler.scopeTable.lookUpGlobal(ScopeTableHandler.getMangledNameVar(attribute.name)) == null)
+        {
+            //first time variable declared so no error yahooo!!
+            ScopeTableHandler.insertVar(attribute.name, attribute.typeid);
+        }
+        // redefination found 
+        else
+        {
+            //multiple defination in same class
+            if(ScopeTableHandler.scopeTable.lookUpLocal(ScopeTableHandler.getMangledNameVar(attribute.name))!= null)
+            {
+                String errStr = new StringBuilder().append("Multiple defination found for Attribute '")
+                                .append(attribute.name).append("' in class '").append(GlobalVariables.presentClass)
+                                .append("'").toString();
+                
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, attribute.getLineNo(), errStr);
+                                
+            }
+            //already defined in one of the parent class
+            else
+            {
+                String errStr = new StringBuilder().append("Attribute '")
+                                .append(attribute.name).append("' in class '").append(GlobalVariables.presentClass)
+                                .append("' already defined in one of the parent class.").toString();
+                
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, attribute.getLineNo(), errStr);
+            }
+        }
+    }
+
+    public static void MethodChecker(AST.method method)
+    {
+        // if return type of the method is not defined
+        //the return type can be any object to the class defined
+        if(GlobalVariables.inheritanceGraph.containsClass(method.typeid) == false)
+        {
+            String errStr = new StringBuilder().append("Return type for method '")
+                                .append(method.name).append("' in class '").append(GlobalVariables.presentClass)
+                                .append("' has not been defined").toString();
+                
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, method.getLineNo(), errStr);
+            //assiging the return type of method as object
+            method.typeid = Constants.ROOT_TYPE;
+        }
+
+        String methodMangeled = ScopeTableHandler.getMangledParamsAndReturnType(method.formals, method.typeid);
+        String methodScopeName = ScopeTableHandler.scopeTable.lookUpGlobal(ScopeTableHandler.getMangledNameFunction(method.name));
+
+        //function redefination clashing with the defination of parent class.
+
+        if(methodScopeName != null && methodMangeled.compareTo(methodScopeName) != 0)
+        {   
+            String errStr = new StringBuilder().append("Method '")
+                                .append(method.name).append("' in class '").append(GlobalVariables.presentClass)
+                                .append("' does not match with its declaration in parent class.").toString();
+                
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, method.getLineNo(), errStr);
+        }
+
+        ScopeTableHandler.insertFunc(method.name, method.typeid, method.formals);
+        
+    }
+
+    public static boolean FuncHasArguments(String mangledName) 
+    {
+        if(mangledName==null) return false;
+        String Args = mangledName.substring(mangledName.lastIndexOf("_") - 3, mangledName.lastIndexOf("_") + 1);
+        System.out.println(Args);
+        return "_FT_".equals(Args);
+    }
+
+
+    public static boolean DefaultClass(String className)
+    {
+        if(Constants.ROOT_TYPE.equals(className) || Constants.IO_TYPE.equals(className) 
+        || Constants.STRING_TYPE.equals(className))
+        {
+            return true;
+
+        }
+        else 
+        {
+            return false;
+
+        }
+    }
+
 
 }

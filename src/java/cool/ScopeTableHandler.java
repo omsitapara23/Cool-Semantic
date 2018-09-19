@@ -1,16 +1,13 @@
 package cool;
 
-import cool.ScopeTable;
+
+import java.util.*;
+import java.lang.StringBuilder;
 
 public class ScopeTableHandler
 {
     //this class handels the scope table managment.
     public static ScopeTable<String> scopeTable;
-
-    static
-    {
-        scopeTable = new ScopeTable<>();
-    }
 
     public static String getMangledNameVar(String name)
     {
@@ -26,7 +23,7 @@ public class ScopeTableHandler
 
     public static String getMangledParamsAndReturnType(List<AST.formal> formals, String retType)
     {
-        String mangledName = new StringBuilder();
+        StringBuilder mangledName = new StringBuilder();
         if(formals!=null)
         {
             mangledName.append("_A").append(formals.size()).append("_");

@@ -26,6 +26,7 @@ class Calculator  {
     a : Int;
     b : Int;
     r : Int;
+    a : String;
     sum : Int;
     inti(i : Int, j : Int) : Calculator {
         {
@@ -68,6 +69,8 @@ class Calculator  {
 class Result inherits Calculator {
 
     d : Int;
+    a : Int;
+    f : String;
     calculatorObj : Calculator;
     init(i : Int, obj : Calculator) : Result {
        {
@@ -77,7 +80,11 @@ class Result inherits Calculator {
        } 
     };
 
-    calculate() : Int {
+    sum() : Int {
+        d
+    };
+
+    calculate() : Faltu {
         if d = 1 then calculatorObj.sum() 
         else if d = 2 then calculatorObj.multiplication()
         else if d = 3 then calculatorObj.divide()
@@ -97,7 +104,7 @@ class Harshit inherits Om {
 class Main inherits IO {
     myCalculator : Calculator;
     myResult : Result;
-    main() : Object {{
+    main(o : Int) : Object {{
         out_string("Enter two numbers \n");
         let i : Int <- in_int() in 
         let j : Int <- in_int() in 
