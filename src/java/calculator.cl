@@ -23,12 +23,12 @@
 *)
 
 class Calculator  {
-    a : Int;
+    z : Omfa;
     b : Int;
     r : Int;
     a : String;
     sum : Int;
-    inti(i : Int, j : Int) : Calculator {
+    inti(i : Int, self : Int, i:String, fdasf: Sdfa) : Calculator {
         {
             a <- i;
             b <- j;

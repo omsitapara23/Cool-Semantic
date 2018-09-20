@@ -19,18 +19,6 @@ class Visitor {
      * NOTE: to know about the individual visit functions Check Visitor.java
      */
 
-    // Visits the attributes of the class
-    public void traverse(AST.attr at) {
-    }
-
-    // Visits the method of the class
-    public void traverse(AST.method mthd) {
-    }
-
-    // Visits the formals of the method
-    public void traverse(AST.formal fm) {
-    }
-
     // Expression visitors
 
     // Used for no_expression
@@ -245,6 +233,88 @@ class Visitor {
             return;
         }
 
+        for (AST.feature feature : cl.features) {
+            feature.accept(this);
+        }
+
+    }
+
+    // Visits the attributes of the class
+    public void traverse(AST.attr attribute) {
+        if (attribute.name.equals("self")) {
+            ScopeTableHandler.scopeTable.remove(ScopeTableHandler.getMangledNameVar(attribute.name));
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, attribute.getLineNo(),
+                    "Attribute with name 'self' cannot be defined.");
+
+        //attribute.value.accept(this);
+
+        } else if (!GlobalVariables.inheritanceGraph.containsClass(attribute.typeid)) {
+            String errString = new StringBuilder().append("Attribute '").append(attribute.name).append("' type '")
+                    .append(attribute.typeid).append("' has not been defined.").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, attribute.getLineNo(), errString);
+
+            // For this case, we set the type id of attribute to ROOT_TYPE
+            // this is done to continue compilation
+            ScopeTableHandler.insertVar(attribute.name, Constants.ROOT_TYPE);
+
+            //attribute.value.accept(this);
+
+        } else {
+
+           // attribute.value.accept(this);
+           // check for no expression here------------------------
+
+        }
+
+    }
+
+    // Visits the method of the class
+    public void traverse(AST.method method) {
+        // a new scope, as local variables in a function hides the scope of the
+        // member variables of the class
+        ScopeTableHandler.scopeTable.enterScope();
+
+        // storing all the formals in an Array List for easy checking
+        ArrayList<String> formalNames = new ArrayList<>();
+        // iterating over all formals
+        for (AST.formal f : method.formals) {
+            if (f.name.equals("self")) {
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, f.getLineNo(),
+                        "'Self' name used to define a formal.");
+            }
+            if (!formalNames.contains(f.name)) {
+                // adding the formal names to the array list if not present
+                formalNames.add(f.name);
+            } else {
+                // usage of same formal name is done multiple times
+                String errString = new StringBuilder().append("Formal '").append(f.name)
+                        .append("' has been reclared in the method '").append(method.name).append("'").toString();
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, method.getLineNo(), errString);
+
+            }
+            f.accept(this);
+
+        }
+
+        //method.body.accept(this);
+
+        // write isconforming function here-----------------------------
+
+        ScopeTableHandler.scopeTable.exitScope();
+
+    }
+
+    // Visits the formals of the method
+    public void traverse(AST.formal f) {
+        if (!GlobalVariables.inheritanceGraph.containsClass(f.typeid)) {
+            // type has not been defined
+            String errString = new StringBuilder().append("Type '").append(f.typeid).append("' of formal '")
+                    .append(f.name).append("'has not been defined ").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, f.getLineNo(), errString);
+        } else {
+            // the type is valid and can be inserted in our scope Table
+            ScopeTableHandler.insertVar(f.name, f.typeid);
+        }
     }
 
 }
