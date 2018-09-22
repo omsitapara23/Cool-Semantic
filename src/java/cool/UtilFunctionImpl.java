@@ -6,6 +6,7 @@ import java.util.List;
 
 import cool.AST;
 import cool.GlobalVariables;
+import cool.InheritanceGraph;
 import cool.ScopeTable;
 import cool.ScopeTableHandler;
 
@@ -228,6 +229,76 @@ class UtilFunctionImpl {
             return false;
 
         }
+    }
+
+    public static ArrayList<String> fillAncesstor(GraphNode g)
+    {
+        ArrayList <String> Ancesstors;
+        while(g.hasParent())
+        {
+            Ancesstors.add(g.getParent().getASTClass().name);
+            g = g.getParent();
+        }
+    }
+
+    public static String findLCA(GraphNode gtp1, GraphNode gtp2)
+    {
+
+        ArrayList <String> AncesstorA;
+        ArrayList <String> AncesstorB;
+        AncesstorA = fillAncesstor(gtp1);
+        AncesstorB = fillAncesstor(gtp2);
+
+        bool check = false;
+        int i = AncesstorA.size()-1, j = AncesstorB.size()-1;
+        for( ;i>=0 && j >=0 ; i--, j--)
+        {
+            if(AncesstorA.get(i) != AncesstorB.get(j))
+                break;
+        }
+
+        return AncesstorA.get(i+1);
+
+    }
+
+    public static String joinTypesOf(String typeA, String typeB, GraphNode gtp1, GraphNode gtp2 )
+    {
+        if(typeA.equals(typeB))
+            return typeA;
+        else if(InheritanceGraph.restrictedInheritanceType.contains(typeA) || InheritanceGraph.restrictedInheritanceType.contains(typeB))
+        {
+            return Constants.ROOT_TYPE;
+        }
+
+        String LCA = findLCA(gtp1, gtp2);
+        return LCA;
+
+    }
+
+    public static boolean typeChecker(String tp1, String tp2, GraphNode gtp1, GraphNode gtp2)
+    {
+        //checking if the type1 is global or both the types are equal
+        if(tp1.equals(Constants.ROOT_TYPE) || tp2.equals(tp1))
+        {
+            return true;
+        }
+        //checking for assigment as : Int <- String these are semantically incorrect in cool
+        else if(InheritanceGraph.restrictedInheritanceType.find(tp1) || InheritanceGraph.restrictedInheritanceType.find(tp2))
+        {
+            return false;
+        }
+
+        //checking if type1 is any parent type of type2
+        while(gtp2.hasParent())
+        {
+            gtp2 = gtp2.getParent();
+            if(gtp1.equals(gtp2))
+            {
+                return ture;
+            }
+        }
+
+        return false;
     }
 
 

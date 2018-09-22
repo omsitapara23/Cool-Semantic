@@ -29,9 +29,11 @@ public class InheritanceGraph
     private ArrayList<String> cycleClass = new ArrayList<>();
 
 
-    private ArrayList<String> restrictedType = new ArrayList<String>(Arrays.asList(Constants.STRING_TYPE, Constants.IO_TYPE, Constants.BOOL_TYPE, Constants.INT_TYPE));
+    public static ArrayList<String> restrictedType = new ArrayList<String>(Arrays.asList(Constants.STRING_TYPE, Constants.IO_TYPE, Constants.BOOL_TYPE, Constants.INT_TYPE));
     
-    private ArrayList<String> restrictedInheritanceType = new ArrayList<String>(Arrays.asList(Constants.STRING_TYPE, Constants.BOOL_TYPE, Constants.INT_TYPE));
+    public static ArrayList<String> restrictedInheritanceType = new ArrayList<String>(Arrays.asList(Constants.STRING_TYPE, Constants.BOOL_TYPE, Constants.INT_TYPE));
+
+    public static ArrayList<String> classWithNoMethodType = new ArrayList<String>(Arrays.asList(Constants.BOOL_TYPE, Constants.INT_TYPE));
 
     public boolean getHasCycle()
     {
@@ -64,6 +66,14 @@ public class InheritanceGraph
     public boolean containsClass(String name)
     {
         return(classNameToIndex.containsKey(name));
+    }
+
+    public int giveClassIndex(String name)
+    {
+        if(classNameToIndex.containsKey(name))
+            return classNameToIndex.get(name);
+        else
+            return -2;
     }
 
     private void addBasicClass()
