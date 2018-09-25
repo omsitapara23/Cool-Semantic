@@ -173,32 +173,159 @@ class Visitor {
 
     // Visits 'while expression loop expression pool' expression
     public void traverse(AST.loop expression) {
+
+        // accepting for loop body and predicate
+        expression.predicate.accept(this);
+        expression.body.accept(this);
+        if(expression.predicate.type.compareTo(Constants.BOOL_TYPE) != 0)
+        {
+            String errString = new StringBuilder().append(" loop predicate type does not match will bool type");
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+        }
+
+        // to prevent errors
+        expression.type = Constants.ROOT_TYPE;
     }
 
     // Visits '{ [expression{}]+ }' expression
     public void traverse(AST.block expression) {
+
+        for(AST.expression e : expression.l1)
+        {
+            e.accept(this);
+        }
+        // type of block is defined as type of last expression       
+        expression.type = expression.l1.get(expression.l1.size() - 1).type;
+
     }
 
     // Visits 'let ID : TYPE [<-expression] in expression' expression
     // NOTE: muliple ID declaration is converted to nested let by parser
     public void traverse(AST.let expression) {
+
+        // let expression defines a new scope
+        ScopeTableHandler.scopeTable.enterScope();
+
+        if(expression.name.compareTo("self")!=0)
+        {
+            if(GlobalVariables.inheritanceGraph.containsClass(expression.typeid) == false )
+            {
+                // the defined type does not exist
+                String errString = new StringBuilder().append("'").append(expression.typeid).append("' is not defined ").toString();
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+
+                // to run the code without errors
+                expression.typeid = Constants.ROOT_TYPE;
+
+            }
+
+            ScopeTableHandler.scopeTable.insert(ScopeTableHandler.insertExpression(expression.name, expression.typeid), expression.typeid);
+
+            // assignment is possible
+            if(! (expression.value instanceof AST.no_expr))
+            {
+                // expression is visited
+                expression.value.accept(this);
+
+                // assignment and variable type checking
+                if(!UtilFunctionImpl.typeChecker(expression.typeid, expression.value.type , GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.typeid)),  GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.value.type))))
+                {
+                    String errString = new StringBuilder().append("Type of attribute '").append(expression.value.type).append("' and expression type '").append(expression.type).append("' do not equate");
+                    GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+
+                }
+            }
+        }
+        else
+        {
+            // 'let' expression cannot bound 'self' 
+            String errString = new StringBuilder().append(" expression name cannot be of type 'self'");
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+
+        }
+
+        // accepting for 'let' body
+        expression.body.accept(this);
+        expression.type = expression.body.type;
+        ScopeTableHandler.scopeTable.exitScope();
+        
     }
 
     // Visits 'case expression of [ID : TYPE => expression{}]+ esac' expression
     public void traverse(AST.typcase expression) {
+
+        // join of all branches gives us the type of typecase expression
+        expression.predicate.accept(this);
+
+        // here we accept and then joining types of all other branches
+        for(int i = 0; i < expression.branches.size(); i++)
+        {
+            expression.branches.get(i).accept(this);
+
+            // for first index we need to compute separately
+            if(i==0)
+            {   
+                expression.type = expression.branches.get(i).value.type;
+            }
+            else
+            {
+                expression.type = UtilFunctionImpl.joinTypesOf(expression.type, expression.branches.get(i).value.type, GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.type)),  GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.branches.get(i).value.type)));
+            }
+        }
     }
 
     // Visits 'ID : TYPE => expression{}'
     // This is not an expression, but used inside case
-    public void traverse(AST.branch br) {
+    public void traverse(AST.branch branch) {
+
+        // defines a new scope
+        ScopeTableHandler.scopeTable.enterScope();
+        if(branch.name.compareTo("self") != 0)
+        {
+            if(GlobalVariables.inheritanceGraph.containsClass(branch.type))
+            {
+                String errString = new StringBuilder().append(" Type '").append(branch.type).append("' is not defined");
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, branch.getLineNo(), errString);
+
+                branch.type = Constants.ROOT_TYPE;
+            }
+            ScopeTableHandler.scopeTable.insert(ScopeTableHandler.insertBranch(branch.name, branch.type), branch.type);
+
+        }
+        else
+        {
+            // 'case' cannot bound a 'self' type
+            String errString = new StringBuilder().append(" 'case' name cannot be of type 'self'");
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, branch.getLineNo(), errString);
+        }
+        branch.value.accept(this);
+        ScopeTableHandler.scopeTable.exitScope();
     }
 
     // Visits 'new TYPE' expression
     public void traverse(AST.new_ expression) {
+
+        if(GlobalVariables.inheritanceGraph.containsClass(expression.typeid))
+        {
+            expression.type = expression.typeid;
+        }
+        else
+        {
+            String errString = new StringBuilder().append(" Type '").append(expression.typeid).append("' is not defined");
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+
+            // to run without errors
+            expression.type = Constants.ROOT_TYPE;
+        }
     }
 
     // Visits 'isvoid expression' expression
     public void traverse(AST.isvoid expression) {
+
+        expression.e1.accept(this);
+
+        // assigning type to bool type
+        expression.type = Constants.BOOL_TYPE;
     }
 
     // Visits 'expression + expression' expression
@@ -229,9 +356,9 @@ class Visitor {
     public void traverse(AST.leq expression) {
     }
 
-    // Visits 'expression = expression' expression
-    public void traverse(AST.eq expression) {
-    }
+    /plussion' expression
+    ppluspression) {
+    }plus
 
     // Visits '~expression' expression
     public void traverse(AST.neg expression) {
