@@ -1,6 +1,6 @@
 package cool;
 
-public class Semantic{
+public class Semantic extends Visitor{
 	private boolean errorFlag = false;
 	public void reportError(String filename, int lineNo, String error){
 		errorFlag = true;
