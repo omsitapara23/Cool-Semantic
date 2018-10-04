@@ -1,10 +1,34 @@
 --program implements simple calculator using classes and inheritance.
 --NON TRIVIAL
-class Calculator {
-    a : Int;
+--These program checks most of the  rules named:
+(*
+    program::= [[class; ]]+
+    class::= ∗class TYPE [inherits TYPE] { [[feature; ]] }
+    formal::=ID : TYPE
+    expr::= ID <- expr
+        |   expr + expr 
+        |   expr − expr
+        |   expr ∗ expr
+        |   expr / expr
+        |   expr < expr
+        |   expr <= expr
+        |   expr = expr
+        |   (expr)
+        |   ID
+        |   let ID : TYPE [ <- expr ] [[, ID : TYPE [ <- expr ]]]∗ in expr
+        |   { [[expr; ]]+ }
+        |   if expr then expr else expr fi
+
+
+*)
+
+class Calculator  {
+    z : Omfa;
     b : Int;
     r : Int;
-    inti(i : Int, j : Int) : Calculator {
+    a : String;
+    sum : Int;
+    inti(i : Int, self : Int, i:String, fdasf: Sdfa) : Calculator {
         {
             a <- i;
             b <- j;
@@ -18,9 +42,11 @@ class Calculator {
         r <- a + b
     };
 
+
     multiplication() : Int {
         r <- a * b
     };
+
 
     subtract() : Int {
         r <- a - b
@@ -38,12 +64,13 @@ class Calculator {
         r
     };
 
-
 };
 
 class Result inherits Calculator {
 
     d : Int;
+    a : Int;
+    f : String;
     calculatorObj : Calculator;
     init(i : Int, obj : Calculator) : Result {
        {
@@ -53,13 +80,25 @@ class Result inherits Calculator {
        } 
     };
 
-    calculate() : Int {
+    sum() : Int {
+        d
+    };
+
+    calculate() : Object {
         if d = 1 then calculatorObj.sum() 
         else if d = 2 then calculatorObj.multiplication()
         else if d = 3 then calculatorObj.divide()
         else  calculatorObj.subtract()
         fi fi fi
     };
+};
+
+class Om  {
+
+};
+
+class Harshit inherits Om {
+
 };
 
 class Main inherits IO {

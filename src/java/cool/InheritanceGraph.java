@@ -142,7 +142,7 @@ public class InheritanceGraph
         // ( x : String ) for concat method
         // here x is the string to be concated using concat
         List<AST.formal> stringFormal1 = new ArrayList<>();
-        stringFormal.add(new AST.formal("x", Constants.STRING_TYPE, 0));
+        stringFormal1.add(new AST.formal("x", Constants.STRING_TYPE, 0));
 
         //adding the concat method 
         StringFeatures.add(new AST.method("concat", stringFormal1, Constants.STRING_TYPE, null, 0));
@@ -150,8 +150,8 @@ public class InheritanceGraph
         //( x : Int, y : Int) for substr method
         // here x is the start and y is the length for sbustr
         List<AST.formal> intFormal1 = new ArrayList<>();
-        intFormal.add(new AST.formal("x", Constants.INT_TYPE, 0));
-        intFormal.add(new AST.formal("y", Constants.INT_TYPE, 0));
+        intFormal1.add(new AST.formal("x", Constants.INT_TYPE, 0));
+        intFormal1.add(new AST.formal("y", Constants.INT_TYPE, 0));
 
         //adding the substr method 
         StringFeatures.add(new AST.method("substr", intFormal1, Constants.STRING_TYPE, null, 0));

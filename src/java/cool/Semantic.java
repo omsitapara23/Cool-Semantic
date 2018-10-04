@@ -24,6 +24,6 @@ public class Semantic{
 		};
 
 		Visitor visitor = new Visitor();
-		program.accept(visitor);
+		visitor.traverse(program);
 	}
 }

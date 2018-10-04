@@ -5,14 +5,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
-import com.sun.corba.se.impl.orbutil.closure.Constant;
-
 import cool.AST;
 import cool.GlobalVariables;
 import cool.InheritanceGraph;
 import cool.ScopeTable;
 import cool.ScopeTableHandler;
-import jdk.nashorn.internal.objects.Global;
 
 import java.util.HashSet;
 import java.lang.StringBuilder;
@@ -32,31 +29,42 @@ class Visitor {
 
     // Visits 'ID <- expression' expression
     public void traverse(AST.assign expression) {
-        //assignment expression
+        // assignment expression
         expression.e1.accept(this);
 
-        if(expression.name.equals("self"))
-        {
-            GlobalVariables.errorReporter.report(GlobalVariables.filename, expression.getLineNo(), "'self' cannot be assigned");
-        }
-        else
-        {
-            String typeExpr = ScopeTableHandler.scopeTable.lookUpGlobal(expression.name);
-            //attribute not present in the scope table
-            if(typeExpr == null)
-            {
-                String errStr = new StringBuilder().append("Attribute '").append(expression.name).append("' is not defined").toString();
-                GlobalVariables.errorReporter.report(GlobalVariables.filename, expression.getLineNo(), errStr);
+        if (expression.name.equals("self")) {
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(),
+                    "'self' cannot be assigned");
+        } else {
+            String typeExpr = ScopeTableHandler.scopeTable
+                    .lookUpGlobal(ScopeTableHandler.getMangledNameVar(expression.name));
+            // attribute not present in the scope table
+            if (typeExpr == null) {
+                String errStr = new StringBuilder().append("Attribute '").append(expression.name)
+                        .append("' is not defined").toString();
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errStr);
             }
-            //checking for assigment 
-            else if(!UtilFunctionImpl.typeChecker(typeExpr, expression.e1.type, GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(typeExpr)),  GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.e1.type))))
-            {
-                String errStr = new StringBuilder().append("Attribute '").append(expression.name).append("' is not consistent with type of expression").toString();
-                GlobalVariables.errorReporter.report(GlobalVariables.filename, expression.getLineNo(), errStr);
+            // checking for assigment
+            else if (typeExpr.equals(expression.e1.type) || typeExpr.equals(Constants.ROOT_TYPE)) {
+
+            } else if (InheritanceGraph.restrictedInheritanceType.contains(typeExpr)
+                    || InheritanceGraph.restrictedInheritanceType.contains(expression.e1.type)) {
+                String errStr = new StringBuilder().append("Attribute '").append(expression.name)
+                        .append("' is not consistent with type of expression").toString();
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errStr);
+            } else if (!UtilFunctionImpl.typeChecker(typeExpr, expression.e1.type,
+                    GlobalVariables.inheritanceGraph.inheritanceGraph
+                            .get(GlobalVariables.inheritanceGraph.giveClassIndex(typeExpr)),
+                    GlobalVariables.inheritanceGraph.inheritanceGraph
+                            .get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.e1.type)))) {
+                String errStr = new StringBuilder().append("Attribute '").append(expression.name)
+                        .append("' is not consistent with type of expression").toString();
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errStr);
+
             }
 
         }
-        //all correct :-)
+        // all correct :-)
         expression.type = expression.e1.type;
 
     }
@@ -65,35 +73,46 @@ class Visitor {
     public void traverse(AST.static_dispatch expression) {
         expression.caller.accept(this);
 
-        String caller = expr.caller.type;
-        for(AST.expression expr : expression.actuals)
-        {
+        String caller = expression.caller.type;
+        for (AST.expression expr : expression.actuals) {
             expr.accept(this);
         }
 
-        //return type not defined
-        if(GlobalVariables.inheritanceGraph.containsClass(expression.typeid) == false)
-        {
-            String errString = new StringBuilder().append("Type undefined '").append(expression.typeid).append("'").toString();
+        // return type not defined
+        if (GlobalVariables.inheritanceGraph.containsClass(expression.typeid) == false) {
+            String errString = new StringBuilder().append("Type undefined '").append(expression.typeid).append("'")
+                    .toString();
             GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
-        }
-        else if(!UtilFunctionImpl.typeChecker(expression.typeid, caller, GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.typeid)),  GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(caller))))
-        {
-            String errString = new StringBuilder().append("Type mismatch for caller '").append(caller).append("' expected '").append(expression.typeid + "'").toString();
+        } else if (expression.typeid.equals(caller) || Constants.ROOT_TYPE.equals(expression.typeid)) {
+
+        } else if (InheritanceGraph.restrictedInheritanceType.contains(expression.typeid)
+                || InheritanceGraph.restrictedInheritanceType.contains(caller)) {
+            String errString = new StringBuilder().append("Type mismatch for caller '").append(caller)
+                    .append("' expected '").append(expression.typeid + "'").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+            expression.type = Constants.ROOT_TYPE;
+
+        } else if (!UtilFunctionImpl.typeChecker(expression.typeid, caller,
+                GlobalVariables.inheritanceGraph.inheritanceGraph
+                        .get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.typeid)),
+                GlobalVariables.inheritanceGraph.inheritanceGraph
+                        .get(GlobalVariables.inheritanceGraph.giveClassIndex(caller)))) {
+            String errString = new StringBuilder().append("Type mismatch for caller '").append(caller)
+                    .append("' expected '").append(expression.typeid + "'").toString();
             GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
             expression.type = Constants.ROOT_TYPE;
         }
-        else
-        {
-            String methodMangled = UtilFunctionImpl.getMangledNameWithExpression(expression.typeid,  expression.actuals, expression.name);
-            if(!GlobalVariables.mapMangledNames.containsKey(methodMangled))
-            {
-                String errString = new StringBuilder().append("Undefined method '").append(expression.name).append("' for dispatch").toString();
-                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+
+        else {
+            String methodMangled = UtilFunctionImpl.getMangledNameWithExpression(expression.typeid, expression.actuals,
+                    expression.name);
+            if (!GlobalVariables.mapMangledNames.containsKey(methodMangled)) {
+                String errString = new StringBuilder().append("Undefined method '").append(expression.name)
+                        .append("' for dispatch").toString();
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(),
+                        errString);
                 expression.type = Constants.ROOT_TYPE;
-            }
-            else
-            {
+            } else {
                 expression.type = GlobalVariables.mapMangledNames.get(methodMangled);
             }
         }
@@ -103,52 +122,54 @@ class Visitor {
     public void traverse(AST.dispatch expression) {
         expression.caller.accept(this);
         String callingClass = expression.caller.type;
-        //class contains no method - INT or Bool
-        if(GlobalVariables.inheritanceGraph.classWithNoMethodType.contains(callingClass))
-        {
-            GlobalVariables.errorReporter.report(Global.presentFilename, expression.getLineNo(), "Method is not defined '"+expression.name+"'");
+        System.out.println(callingClass);
+        // class contains no method - INT or Bool
+        if (InheritanceGraph.classWithNoMethodType.contains(callingClass)) {
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(),
+                    "Method is not defined '" + expression.name + "'");
             return;
         }
 
-        for(AST.expression e : expression.actuals)
+        for (AST.expression e : expression.actuals)
             e.accept(this);
-        
-        String methodMangled = UtilFunctionImpl.getMangledNameWithExpression(callingClass, expression.actuals, expression.name);
-        
+
+        String methodMangled = UtilFunctionImpl.getMangledNameWithExpression(callingClass, expression.actuals,
+                expression.name);
+        System.out.println("methodMangled = " + methodMangled);
         String typeMethod;
-        if(!GlobalVariables.mapMangledNames.containsKey(methodMangled))
-        {
+        if (!GlobalVariables.mapMangledNames.containsKey(methodMangled)) {
             typeMethod = null;
-            while(typeMethod == null)
-            {
-                callingClass = GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(callingClass)).getParent().getASTClass().name;
-                if(callingClass != null)
-                {
-                    methodMangled = UtilFunctionImpl.getMangledNameWithExpression(callingClass, expression.actuals, expression.name);
-                    
-                    if(GlobalVariables.mapMangledNames.containsKey(methodMangled))
-                    {
-                       typeMethod = GlobalVariables.mapMangledNames.get(methodMangled);
+            while (typeMethod == null) {
+                System.out
+                        .println(callingClass + "   " + GlobalVariables.inheritanceGraph.giveClassIndex(callingClass));
+                callingClass = GlobalVariables.inheritanceGraph.inheritanceGraph
+                        .get(GlobalVariables.inheritanceGraph.giveClassIndex(callingClass)).getASTClass().parent;
+                if (callingClass != null) {
+                    methodMangled = UtilFunctionImpl.getMangledNameWithExpression(callingClass, expression.actuals,
+                            expression.name);
+                    System.out.println("methodMangledinside = " + methodMangled);
+                    if (GlobalVariables.mapMangledNames.containsKey(methodMangled)) {
+                        typeMethod = GlobalVariables.mapMangledNames.get(methodMangled);
+                        System.out.println("typeMangled = " + typeMethod);
                     }
-                }
-                else
+                } else {
+                    System.out.println("breaking");
                     break;
+                }
 
             }
-        }
-        else
-        {
+        } else {
             typeMethod = GlobalVariables.mapMangledNames.get(methodMangled);
+            System.out.println("typeMangled2 = " + typeMethod);
         }
-        if(typeMethod == null)
-        {
+        if (typeMethod == null) {
             // method is not found
-            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), "Method signature undefined for '" + expression.name + "'");
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(),
+                    "Method signature undefined for '" + expression.name + "'");
             // to run without errors
             expression.type = Constants.ROOT_TYPE;
 
-        }
-        else{
+        } else {
             expression.type = typeMethod;
         }
 
@@ -161,14 +182,23 @@ class Visitor {
         expression.ifbody.accept(this);
         expression.elsebody.accept(this);
 
-        if(expression.predicate.type.equals(Constants.BOOL_TYPE) == false)
-        {
-            GlobalVariables.errorReporter.report(GlobalVaribles.presentFilename, expression.getLineNo(), "Return type of condtion predicate is not BOOL ");
+        if (expression.predicate.type.equals(Constants.BOOL_TYPE) == false) {
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(),
+                    "Return type of condtion predicate is not BOOL ");
+        }
+        if (expression.ifbody.type.equals(expression.elsebody.type)) {
+            expression.type = expression.ifbody.type;
+        } else if (InheritanceGraph.restrictedInheritanceType.contains(expression.ifbody.type)
+                || InheritanceGraph.restrictedInheritanceType.contains(expression.elsebody.type)) {
+            expression.type = Constants.ROOT_TYPE;
+        } else {
+            expression.type = UtilFunctionImpl.joinTypesOf(expression.ifbody.type, expression.elsebody.type,
+                    GlobalVariables.inheritanceGraph.inheritanceGraph
+                            .get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.ifbody.type)),
+                    GlobalVariables.inheritanceGraph.inheritanceGraph
+                            .get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.elsebody.type)));
         }
 
-        
-        expression.type = UtilFunctionImpl.joinTypesOf(expression.ifbody.type, expression.elsebody.type, GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.ifbody.type)),  GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.elsebody.type)));
-        
     }
 
     // Visits 'while expression loop expression pool' expression
@@ -177,9 +207,9 @@ class Visitor {
         // accepting for loop body and predicate
         expression.predicate.accept(this);
         expression.body.accept(this);
-        if(expression.predicate.type.compareTo(Constants.BOOL_TYPE) != 0)
-        {
-            String errString = new StringBuilder().append(" loop predicate type does not match will bool type");
+        if (expression.predicate.type.compareTo(Constants.BOOL_TYPE) != 0) {
+            String errString = new StringBuilder().append(" loop predicate type does not match will bool type")
+                    .toString();
             GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
         }
 
@@ -190,11 +220,10 @@ class Visitor {
     // Visits '{ [expression{}]+ }' expression
     public void traverse(AST.block expression) {
 
-        for(AST.expression e : expression.l1)
-        {
+        for (AST.expression e : expression.l1) {
             e.accept(this);
         }
-        // type of block is defined as type of last expression       
+        // type of block is defined as type of last expression
         expression.type = expression.l1.get(expression.l1.size() - 1).type;
 
     }
@@ -206,40 +235,55 @@ class Visitor {
         // let expression defines a new scope
         ScopeTableHandler.scopeTable.enterScope();
 
-        if(expression.name.compareTo("self")!=0)
-        {
-            if(GlobalVariables.inheritanceGraph.containsClass(expression.typeid) == false )
-            {
+        if (expression.name.compareTo("self") != 0) {
+            if (GlobalVariables.inheritanceGraph.containsClass(expression.typeid) == false) {
                 // the defined type does not exist
-                String errString = new StringBuilder().append("'").append(expression.typeid).append("' is not defined ").toString();
-                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+                String errString = new StringBuilder().append("'").append(expression.typeid).append("' is not defined ")
+                        .toString();
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(),
+                        errString);
 
                 // to run the code without errors
                 expression.typeid = Constants.ROOT_TYPE;
 
             }
 
-            ScopeTableHandler.scopeTable.insert(ScopeTableHandler.insertExpression(expression.name, expression.typeid), expression.typeid);
+            ScopeTableHandler.insertVar(expression.name, expression.typeid);
 
             // assignment is possible
-            if(! (expression.value instanceof AST.no_expr))
-            {
+            if (!(expression.value instanceof AST.no_expr)) {
                 // expression is visited
                 expression.value.accept(this);
 
                 // assignment and variable type checking
-                if(!UtilFunctionImpl.typeChecker(expression.typeid, expression.value.type , GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.typeid)),  GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.value.type))))
-                {
-                    String errString = new StringBuilder().append("Type of attribute '").append(expression.value.type).append("' and expression type '").append(expression.type).append("' do not equate");
-                    GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+                if (expression.typeid.equals(expression.value.type) || Constants.ROOT_TYPE.equals(expression.typeid)) {
 
+                } else if (!InheritanceGraph.restrictedInheritanceType.contains(expression.typeid)
+                        && !InheritanceGraph.restrictedInheritanceType.contains(expression.value.type)) {
+                    if (!UtilFunctionImpl.typeChecker(expression.typeid, expression.value.type,
+                            GlobalVariables.inheritanceGraph.inheritanceGraph
+                                    .get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.typeid)),
+                            GlobalVariables.inheritanceGraph.inheritanceGraph
+                                    .get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.value.type)))) {
+                        String errString = new StringBuilder().append("Type of attribute '")
+                                .append(expression.value.type).append("' and expression type '").append(expression.type)
+                                .append("' do not equate").toString();
+                        GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(),
+                                errString);
+
+                    }
+                } else {
+                    String errString = new StringBuilder().append("Type of attribute '").append(expression.value.type)
+                            .append("' and expression type '").append(expression.type).append("' do not equate")
+                            .toString();
+                    GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(),
+                            errString);
                 }
+
             }
-        }
-        else
-        {
-            // 'let' expression cannot bound 'self' 
-            String errString = new StringBuilder().append(" expression name cannot be of type 'self'");
+        } else {
+            // 'let' expression cannot bound 'self'
+            String errString = new StringBuilder().append(" expression name cannot be of type 'self'").toString();
             GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
 
         }
@@ -248,7 +292,7 @@ class Visitor {
         expression.body.accept(this);
         expression.type = expression.body.type;
         ScopeTableHandler.scopeTable.exitScope();
-        
+
     }
 
     // Visits 'case expression of [ID : TYPE => expression{}]+ esac' expression
@@ -258,18 +302,27 @@ class Visitor {
         expression.predicate.accept(this);
 
         // here we accept and then joining types of all other branches
-        for(int i = 0; i < expression.branches.size(); i++)
-        {
+        for (int i = 0; i < expression.branches.size(); i++) {
             expression.branches.get(i).accept(this);
 
             // for first index we need to compute separately
-            if(i==0)
-            {   
+            if (i == 0) {
                 expression.type = expression.branches.get(i).value.type;
-            }
-            else
-            {
-                expression.type = UtilFunctionImpl.joinTypesOf(expression.type, expression.branches.get(i).value.type, GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.type)),  GlobalVariables.inheritanceGraph.get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.branches.get(i).value.type)));
+            } else {
+                if (expression.type.equals(expression.branches.get(i).value.type)) {
+                    expression.type = expression.branches.get(i).value.type;
+                } else if (InheritanceGraph.restrictedInheritanceType.contains(expression.type)
+                        || InheritanceGraph.restrictedInheritanceType.contains(expression.branches.get(i).value.type)) {
+                    expression.type = Constants.ROOT_TYPE;
+                } else {
+                    expression.type = UtilFunctionImpl.joinTypesOf(expression.type,
+                            expression.branches.get(i).value.type,
+                            GlobalVariables.inheritanceGraph.inheritanceGraph
+                                    .get(GlobalVariables.inheritanceGraph.giveClassIndex(expression.type)),
+                            GlobalVariables.inheritanceGraph.inheritanceGraph.get(GlobalVariables.inheritanceGraph
+                                    .giveClassIndex(expression.branches.get(i).value.type)));
+                }
+
             }
         }
     }
@@ -280,22 +333,19 @@ class Visitor {
 
         // defines a new scope
         ScopeTableHandler.scopeTable.enterScope();
-        if(branch.name.compareTo("self") != 0)
-        {
-            if(GlobalVariables.inheritanceGraph.containsClass(branch.type))
-            {
-                String errString = new StringBuilder().append(" Type '").append(branch.type).append("' is not defined");
+        if (branch.name.compareTo("self") != 0) {
+            if (GlobalVariables.inheritanceGraph.containsClass(branch.type)) {
+                String errString = new StringBuilder().append(" Type '").append(branch.type).append("' is not defined")
+                        .toString();
                 GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, branch.getLineNo(), errString);
 
                 branch.type = Constants.ROOT_TYPE;
             }
-            ScopeTableHandler.scopeTable.insert(ScopeTableHandler.insertBranch(branch.name, branch.type), branch.type);
+            ScopeTableHandler.insertVar(branch.name, branch.type);
 
-        }
-        else
-        {
+        } else {
             // 'case' cannot bound a 'self' type
-            String errString = new StringBuilder().append(" 'case' name cannot be of type 'self'");
+            String errString = new StringBuilder().append(" 'case' name cannot be of type 'self'").toString();
             GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, branch.getLineNo(), errString);
         }
         branch.value.accept(this);
@@ -305,13 +355,11 @@ class Visitor {
     // Visits 'new TYPE' expression
     public void traverse(AST.new_ expression) {
 
-        if(GlobalVariables.inheritanceGraph.containsClass(expression.typeid))
-        {
+        if (GlobalVariables.inheritanceGraph.containsClass(expression.typeid)) {
             expression.type = expression.typeid;
-        }
-        else
-        {
-            String errString = new StringBuilder().append(" Type '").append(expression.typeid).append("' is not defined");
+        } else {
+            String errString = new StringBuilder().append(" Type '").append(expression.typeid)
+                    .append("' is not defined").toString();
             GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
 
             // to run without errors
@@ -330,54 +378,132 @@ class Visitor {
 
     // Visits 'expression + expression' expression
     public void traverse(AST.plus expression) {
+        expression.e1.accept(this);
+        expression.e2.accept(this);
+        if (!Constants.INT_TYPE.equals(expression.e1.type) || !Constants.INT_TYPE.equals(expression.e2.type)) {
+            String errString = new StringBuilder().append("Addition called on non int types").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+        }
+        expression.type = Constants.INT_TYPE;
     }
 
     // Visits 'expression - expression' expression
     public void traverse(AST.sub expression) {
+        expression.e1.accept(this);
+        expression.e2.accept(this);
+        if (!Constants.INT_TYPE.equals(expression.e1.type) || !Constants.INT_TYPE.equals(expression.e2.type)) {
+            String errString = new StringBuilder().append("Subtraction called on non int types").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+        }
+        expression.type = Constants.INT_TYPE;
     }
 
     // Visits 'expression * expression' expression
     public void traverse(AST.mul expression) {
+        expression.e1.accept(this);
+        expression.e2.accept(this);
+        if (!Constants.INT_TYPE.equals(expression.e1.type) || !Constants.INT_TYPE.equals(expression.e2.type)) {
+            String errString = new StringBuilder().append("Multiplication called on non int types").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+        }
+        expression.type = Constants.INT_TYPE;
     }
 
     // Visits 'expression / expression' expression
     public void traverse(AST.divide expression) {
+        expression.e1.accept(this);
+        expression.e2.accept(this);
+        if (!Constants.INT_TYPE.equals(expression.e1.type) || !Constants.INT_TYPE.equals(expression.e2.type)) {
+            String errString = new StringBuilder().append("Division called on non int types").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+        }
+        expression.type = Constants.INT_TYPE;
     }
 
     // Visits 'not expression' expression
     public void traverse(AST.comp expression) {
+        expression.e1.accept(this);
+        if (!Constants.BOOL_TYPE.equals(expression.e1.type)) {
+            String errString = new StringBuilder().append("Compliment of bool type found").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+        }
+        expression.type = Constants.BOOL_TYPE;
     }
 
     // Visits 'expression < expression' expression
     public void traverse(AST.lt expression) {
+        expression.e1.accept(this);
+        expression.e2.accept(this);
+        if (!Constants.INT_TYPE.equals(expression.e1.type) || !Constants.INT_TYPE.equals(expression.e2.type)) {
+            String errString = new StringBuilder().append("cannot comapre two non int types").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+        }
+        expression.type = Constants.BOOL_TYPE;
     }
 
     // Visits 'expression <= expression' expression
     public void traverse(AST.leq expression) {
+        expression.e1.accept(this);
+        expression.e2.accept(this);
+        if (!Constants.INT_TYPE.equals(expression.e1.type) || !Constants.INT_TYPE.equals(expression.e2.type)) {
+            String errString = new StringBuilder().append("cannot comapre two non int types").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+        }
+        expression.type = Constants.BOOL_TYPE;
     }
 
-    /plussion' expression
-    ppluspression) {
-    }plus
+    public void traverse(AST.eq expression) {
+        expression.e1.accept(this);
+        expression.e2.accept(this);
+        System.out.println(expression.e1.type + "   " + expression.e2.type);
+        if (!expression.e1.type.equals(expression.e2.type)) {
+            String errString = new StringBuilder().append("cannot comapre two diffrent types").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+        }
+        expression.type = Constants.BOOL_TYPE;
+    }
 
     // Visits '~expression' expression
     public void traverse(AST.neg expression) {
+        expression.e1.accept(this);
+        if (!Constants.INT_TYPE.equals(expression.e1.type)) {
+            String errString = new StringBuilder().append("cannot negate non int type").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(), errString);
+        }
+        expression.type = Constants.INT_TYPE;
     }
 
     // Visits 'ID' expression
     public void traverse(AST.object expression) {
+        if (expression.name.equals("self")) {
+            expression.type = GlobalVariables.presentClass;
+        } else {
+            String ty = ScopeTableHandler.scopeTable.lookUpGlobal(ScopeTableHandler.getMangledNameVar(expression.name));
+            if (ty == null) {
+                expression.type = Constants.ROOT_TYPE;
+                String errString = new StringBuilder().append("No defination for '").append(expression.name)
+                        .append("' found").toString();
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, expression.getLineNo(),
+                        errString);
+            } else
+                expression.type = ty;
+        }
+
     }
 
     // Visits integer expression
     public void traverse(AST.int_const expression) {
+        expression.type = Constants.INT_TYPE;
     }
 
     // Visits string expression
     public void traverse(AST.string_const expression) {
+        expression.type = Constants.STRING_TYPE;
     }
 
     // Visits bool expression
     public void traverse(AST.bool_const expression) {
+        expression.type = Constants.BOOL_TYPE;
     }
 
     public void traverse(AST.program prog) {
@@ -420,7 +546,8 @@ class Visitor {
     private void DFSVisitor(GraphNode node) {
         ScopeTableHandler.scopeTable.enterScope();
 
-        node.getASTClass().accept(this);
+        //node.getASTClass().accept(this);
+        this.traverse(node.getASTClass());
 
         for (GraphNode children : node.getChildren()) {
             DFSVisitor(children);
@@ -503,7 +630,7 @@ class Visitor {
             GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, attribute.getLineNo(),
                     "Attribute with name 'self' cannot be defined.");
 
-        //attribute.value.accept(this);
+            // attribute.value.accept(this);
 
         } else if (!GlobalVariables.inheritanceGraph.containsClass(attribute.typeid)) {
             String errString = new StringBuilder().append("Attribute '").append(attribute.name).append("' type '")
@@ -514,12 +641,41 @@ class Visitor {
             // this is done to continue compilation
             ScopeTableHandler.insertVar(attribute.name, Constants.ROOT_TYPE);
 
-            //attribute.value.accept(this);
+            attribute.value.accept(this);
 
         } else {
 
-           // attribute.value.accept(this);
-           // check for no expression here------------------------
+            attribute.value.accept(this);
+            // check for no expression here------------------------
+            System.out.println(
+                    attribute.typeid + "  " + attribute.value.type + attribute.getLineNo() + "  " + attribute.value);
+            System.out.println(GlobalVariables.inheritanceGraph.giveClassIndex(attribute.typeid) + "   "
+                    + GlobalVariables.inheritanceGraph.giveClassIndex(attribute.value.type));
+            if (!(attribute.value instanceof AST.no_expr)) {
+                if (attribute.typeid.equals(attribute.value.type) || Constants.ROOT_TYPE.equals(attribute.typeid)) {
+
+                } else if (!InheritanceGraph.restrictedInheritanceType.contains(attribute.typeid)
+                        && !InheritanceGraph.restrictedInheritanceType.contains(attribute.value.type)) {
+                    if (!UtilFunctionImpl.typeChecker(attribute.typeid, attribute.value.type,
+                            GlobalVariables.inheritanceGraph.inheritanceGraph
+                                    .get(GlobalVariables.inheritanceGraph.giveClassIndex(attribute.typeid)),
+                            GlobalVariables.inheritanceGraph.inheritanceGraph
+                                    .get(GlobalVariables.inheritanceGraph.giveClassIndex(attribute.value.type)))) {
+                        String errString = new StringBuilder().append("Attribute '").append(attribute.name)
+                                .append("' type '").append(attribute.typeid)
+                                .append("' does not match to its expression.").toString();
+                        GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, attribute.getLineNo(),
+                                errString);
+                    }
+                } else {
+                    String errString = new StringBuilder().append("Attribute '").append(attribute.name)
+                            .append("' type '").append(attribute.typeid).append("' does not match to its expression.")
+                            .toString();
+                    GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, attribute.getLineNo(),
+                            errString);
+
+                }
+            }
 
         }
 
@@ -553,10 +709,31 @@ class Visitor {
 
         }
 
-        //method.body.accept(this);
+        method.body.accept(this);
 
         // write isconforming function here-----------------------------
+        if (method.typeid.equals(method.body.type) || Constants.ROOT_TYPE.equals(method.typeid)) {
 
+        } else if (!InheritanceGraph.restrictedInheritanceType.contains(method.typeid)
+                && !InheritanceGraph.restrictedInheritanceType.contains(method.body.type)) {
+            if (!UtilFunctionImpl.typeChecker(method.typeid, method.body.type,
+                    GlobalVariables.inheritanceGraph.inheritanceGraph
+                            .get(GlobalVariables.inheritanceGraph.giveClassIndex(method.typeid)),
+                    GlobalVariables.inheritanceGraph.inheritanceGraph
+                            .get(GlobalVariables.inheritanceGraph.giveClassIndex(method.body.type)))) {
+                String errString = new StringBuilder().append("Method '").append(method.name).append("' type '")
+                        .append(method.typeid).append("' does not match to its body.").toString();
+                GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, method.getLineNo(), errString);
+            }
+
+        }
+
+        else {
+            String errString = new StringBuilder().append("Method '").append(method.name).append("' type '")
+                    .append(method.typeid).append("' does not match to its body.").toString();
+            GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, method.getLineNo(), errString);
+
+        }
         ScopeTableHandler.scopeTable.exitScope();
 
     }

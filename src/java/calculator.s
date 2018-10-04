@@ -25,7 +25,7 @@ _MemMgr_COLLECTOR:
 _MemMgr_TEST:
 	.word	0
 	.word	-1
-str_const19:
+str_const17:
 	.word	5
 	.word	5
 	.word	String_dispTab
@@ -33,29 +33,11 @@ str_const19:
 	.byte	0	
 	.align	2
 	.word	-1
-str_const18:
-	.word	5
-	.word	6
-	.word	String_dispTab
-	.word	int_const5
-	.ascii	"Harshit"
-	.byte	0	
-	.align	2
-	.word	-1
-str_const17:
-	.word	5
-	.word	5
-	.word	String_dispTab
-	.word	int_const2
-	.ascii	"Om"
-	.byte	0	
-	.align	2
-	.word	-1
 str_const16:
 	.word	5
 	.word	6
 	.word	String_dispTab
-	.word	int_const6
+	.word	int_const5
 	.ascii	"Result"
 	.byte	0	
 	.align	2
@@ -64,7 +46,7 @@ str_const15:
 	.word	5
 	.word	7
 	.word	String_dispTab
-	.word	int_const7
+	.word	int_const6
 	.ascii	"Calculator"
 	.byte	0	
 	.align	2
@@ -73,7 +55,7 @@ str_const14:
 	.word	5
 	.word	6
 	.word	String_dispTab
-	.word	int_const6
+	.word	int_const5
 	.ascii	"String"
 	.byte	0	
 	.align	2
@@ -118,7 +100,7 @@ str_const9:
 	.word	5
 	.word	6
 	.word	String_dispTab
-	.word	int_const6
+	.word	int_const5
 	.ascii	"Object"
 	.byte	0	
 	.align	2
@@ -127,7 +109,7 @@ str_const8:
 	.word	5
 	.word	8
 	.word	String_dispTab
-	.word	int_const8
+	.word	int_const7
 	.ascii	"<basic class>"
 	.byte	0	
 	.align	2
@@ -145,7 +127,7 @@ str_const6:
 	.word	5
 	.word	8
 	.word	String_dispTab
-	.word	int_const9
+	.word	int_const8
 	.ascii	"Wrong choice \n"
 	.byte	0	
 	.align	2
@@ -154,7 +136,7 @@ str_const5:
 	.word	5
 	.word	11
 	.word	String_dispTab
-	.word	int_const10
+	.word	int_const9
 	.ascii	"Enter 4 for subtraction \n"
 	.byte	0	
 	.align	2
@@ -163,7 +145,7 @@ str_const4:
 	.word	5
 	.word	10
 	.word	String_dispTab
-	.word	int_const11
+	.word	int_const10
 	.ascii	"Enter 3 for division \n"
 	.byte	0	
 	.align	2
@@ -172,7 +154,7 @@ str_const3:
 	.word	5
 	.word	12
 	.word	String_dispTab
-	.word	int_const12
+	.word	int_const11
 	.ascii	"Enter 2 for multiplication \n"
 	.byte	0	
 	.align	2
@@ -181,7 +163,7 @@ str_const2:
 	.word	5
 	.word	10
 	.word	String_dispTab
-	.word	int_const11
+	.word	int_const10
 	.ascii	"Enter 1 for addition \n"
 	.byte	0	
 	.align	2
@@ -190,7 +172,7 @@ str_const1:
 	.word	5
 	.word	9
 	.word	String_dispTab
-	.word	int_const13
+	.word	int_const12
 	.ascii	"Enter two numbers \n"
 	.byte	0	
 	.align	2
@@ -199,64 +181,58 @@ str_const0:
 	.word	5
 	.word	8
 	.word	String_dispTab
-	.word	int_const8
+	.word	int_const7
 	.ascii	"calculator.cl"
 	.byte	0	
 	.align	2
-	.word	-1
-int_const13:
-	.word	3
-	.word	4
-	.word	Int_dispTab
-	.word	19
 	.word	-1
 int_const12:
 	.word	3
 	.word	4
 	.word	Int_dispTab
-	.word	28
+	.word	19
 	.word	-1
 int_const11:
 	.word	3
 	.word	4
 	.word	Int_dispTab
-	.word	22
+	.word	28
 	.word	-1
 int_const10:
 	.word	3
 	.word	4
 	.word	Int_dispTab
-	.word	25
+	.word	22
 	.word	-1
 int_const9:
 	.word	3
 	.word	4
 	.word	Int_dispTab
-	.word	14
+	.word	25
 	.word	-1
 int_const8:
 	.word	3
 	.word	4
 	.word	Int_dispTab
-	.word	13
+	.word	14
 	.word	-1
 int_const7:
 	.word	3
 	.word	4
 	.word	Int_dispTab
-	.word	10
+	.word	13
 	.word	-1
 int_const6:
 	.word	3
 	.word	4
 	.word	Int_dispTab
-	.word	6
+	.word	10
 	.word	-1
 int_const5:
 	.word	3
 	.word	4
 	.word	Int_dispTab
-	.word	7
+	.word	6
 	.word	-1
 int_const4:
 	.word	3
@@ -308,8 +284,6 @@ class_nameTab:
 	.word	str_const14
 	.word	str_const15
 	.word	str_const16
-	.word	str_const17
-	.word	str_const18
 class_objTab:
 	.word	Object_protObj
 	.word	Object_init
@@ -327,19 +301,7 @@ class_objTab:
 	.word	Calculator_init
 	.word	Result_protObj
 	.word	Result_init
-	.word	Om_protObj
-	.word	Om_init
-	.word	Harshit_protObj
-	.word	Harshit_init
 Object_dispTab:
-	.word	Object.abort
-	.word	Object.type_name
-	.word	Object.copy
-Om_dispTab:
-	.word	Object.abort
-	.word	Object.type_name
-	.word	Object.copy
-Harshit_dispTab:
 	.word	Object.abort
 	.word	Object.type_name
 	.word	Object.copy
@@ -405,30 +367,18 @@ Object_protObj:
 	.word	3
 	.word	Object_dispTab
 	.word	-1
-Om_protObj:
-	.word	8
-	.word	3
-	.word	Om_dispTab
-	.word	-1
-Harshit_protObj:
-	.word	9
-	.word	3
-	.word	Harshit_dispTab
-	.word	-1
 Calculator_protObj:
 	.word	6
-	.word	7
+	.word	6
 	.word	Calculator_dispTab
-	.word	int_const0
 	.word	int_const0
 	.word	int_const0
 	.word	int_const0
 	.word	-1
 Result_protObj:
 	.word	7
-	.word	9
+	.word	8
 	.word	Result_dispTab
-	.word	int_const0
 	.word	int_const0
 	.word	int_const0
 	.word	int_const0
@@ -481,34 +431,6 @@ Object_init:
 	sw	$ra 4($sp)
 	addiu	$fp $sp 4
 	move	$s0 $a0
-	move	$a0 $s0
-	lw	$fp 12($sp)
-	lw	$s0 8($sp)
-	lw	$ra 4($sp)
-	addiu	$sp $sp 12
-	jr	$ra	
-Om_init:
-	addiu	$sp $sp -12
-	sw	$fp 12($sp)
-	sw	$s0 8($sp)
-	sw	$ra 4($sp)
-	addiu	$fp $sp 4
-	move	$s0 $a0
-	jal	Object_init
-	move	$a0 $s0
-	lw	$fp 12($sp)
-	lw	$s0 8($sp)
-	lw	$ra 4($sp)
-	addiu	$sp $sp 12
-	jr	$ra	
-Harshit_init:
-	addiu	$sp $sp -12
-	sw	$fp 12($sp)
-	sw	$s0 8($sp)
-	sw	$ra 4($sp)
-	addiu	$fp $sp 4
-	move	$s0 $a0
-	jal	Om_init
 	move	$a0 $s0
 	lw	$fp 12($sp)
 	lw	$s0 8($sp)
@@ -762,9 +684,9 @@ Result.init:
 	addiu	$fp $sp 4
 	move	$s0 $a0
 	lw	$a0 16($fp)
-	sw	$a0 28($s0)
+	sw	$a0 24($s0)
 	lw	$a0 12($fp)
-	sw	$a0 32($s0)
+	sw	$a0 28($s0)
 	move	$a0 $s0
 	lw	$fp 12($sp)
 	lw	$s0 8($sp)
@@ -778,7 +700,7 @@ Result.calculate:
 	sw	$ra 8($sp)
 	addiu	$fp $sp 4
 	move	$s0 $a0
-	lw	$s1 28($s0)
+	lw	$s1 24($s0)
 	la	$t2 int_const1
 	move	$t1 $s1
 	la	$a0 bool_const1
@@ -788,7 +710,7 @@ Result.calculate:
 label3:
 	lw	$t1 12($a0)
 	beqz	$t1 label1
-	lw	$a0 32($s0)
+	lw	$a0 28($s0)
 	bne	$a0 $zero label4
 	la	$a0 str_const0
 	li	$t1 1
@@ -799,7 +721,7 @@ label4:
 	jalr		$t1
 	b	label2
 label1:
-	lw	$s1 28($s0)
+	lw	$s1 24($s0)
 	la	$t2 int_const2
 	move	$t1 $s1
 	la	$a0 bool_const1
@@ -809,7 +731,7 @@ label1:
 label7:
 	lw	$t1 12($a0)
 	beqz	$t1 label5
-	lw	$a0 32($s0)
+	lw	$a0 28($s0)
 	bne	$a0 $zero label8
 	la	$a0 str_const0
 	li	$t1 1
@@ -820,7 +742,7 @@ label8:
 	jalr		$t1
 	b	label6
 label5:
-	lw	$s1 28($s0)
+	lw	$s1 24($s0)
 	la	$t2 int_const3
 	move	$t1 $s1
 	la	$a0 bool_const1
@@ -830,7 +752,7 @@ label5:
 label11:
 	lw	$t1 12($a0)
 	beqz	$t1 label9
-	lw	$a0 32($s0)
+	lw	$a0 28($s0)
 	bne	$a0 $zero label12
 	la	$a0 str_const0
 	li	$t1 1
@@ -841,7 +763,7 @@ label12:
 	jalr		$t1
 	b	label10
 label9:
-	lw	$a0 32($s0)
+	lw	$a0 28($s0)
 	bne	$a0 $zero label13
 	la	$a0 str_const0
 	li	$t1 1

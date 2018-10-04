@@ -233,13 +233,16 @@ class UtilFunctionImpl {
 
     public static ArrayList<String> fillAncesstor(GraphNode g)
     {
-        ArrayList <String> Ancesstors;
+        ArrayList <String> Ancesstors = new ArrayList<>();
         while(g.hasParent())
         {
             Ancesstors.add(g.getParent().getASTClass().name);
             g = g.getParent();
         }
+
+        return Ancesstors;
     }
+
 
     public static String findLCA(GraphNode gtp1, GraphNode gtp2)
     {
@@ -249,7 +252,7 @@ class UtilFunctionImpl {
         AncesstorA = fillAncesstor(gtp1);
         AncesstorB = fillAncesstor(gtp2);
 
-        bool check = false;
+        Boolean check = false;
         int i = AncesstorA.size()-1, j = AncesstorB.size()-1;
         for( ;i>=0 && j >=0 ; i--, j--)
         {
@@ -283,7 +286,7 @@ class UtilFunctionImpl {
             return true;
         }
         //checking for assigment as : Int <- String these are semantically incorrect in cool
-        else if(InheritanceGraph.restrictedInheritanceType.find(tp1) || InheritanceGraph.restrictedInheritanceType.find(tp2))
+        else if(InheritanceGraph.restrictedInheritanceType.contains(tp1) || InheritanceGraph.restrictedInheritanceType.contains(tp2))
         {
             return false;
         }
@@ -294,7 +297,7 @@ class UtilFunctionImpl {
             gtp2 = gtp2.getParent();
             if(gtp1.equals(gtp2))
             {
-                return ture;
+                return true;
             }
         }
 
