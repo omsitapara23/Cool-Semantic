@@ -220,8 +220,9 @@ public class InheritanceGraph
     }
 
     //this function checks the restricted inheritance.
-    public void checkRestrictedInheritance()
+    public boolean checkRestrictedInheritance()
     {
+        boolean v = false;
         for(GraphNode currNode : inheritanceGraph)
         {
             if(currNode.getASTClass().parent != null)
@@ -230,10 +231,12 @@ public class InheritanceGraph
                 {
                     String errorStr = new StringBuilder().append("Restricted inheritance found for class '").append(currNode.getASTClass().name).append("'").append(classNameToIndex.get(currNode.getASTClass().name)).toString();
                     GlobalVariables.errorReporter.report(GlobalVariables.presentFilename, currNode.getASTClass().getLineNo(), errorStr);
-
+                    v = true;
                 }
             }
         }
+
+        return v;
     }
 
     public void connectGraph()

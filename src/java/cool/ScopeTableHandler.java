@@ -21,18 +21,6 @@ public class ScopeTableHandler
         return newVar;
     }
 
-    public static String getMangledNameExpression(String name)
-    {
-        String newVar = new StringBuilder().append("EX_").append(name).toString();
-        return newVar;
-    }
-
-    public static String getMangledNameBranch(String name)
-    {
-        String newVar = new StringBuilder().append("BR_").append(name).toString();
-        return newVar;
-    }
-
     public static String getMangledParamsAndReturnType(List<AST.formal> formals, String retType)
     {
         StringBuilder mangledName = new StringBuilder();
@@ -76,18 +64,6 @@ public class ScopeTableHandler
         String mangledFunc = getMangledNameFunction(name);
         String mangledParams = getMangledParamsAndReturnType(formals, retType);
         scopeTable.insert(mangledFunc, mangledParams);
-    }
-
-    public static void insertExpression(String name, String type)
-    {
-        String mangledVar = getMangledNameExpression(name);
-        scopeTable.insert(mangledVar, type);
-    }
-
-    public static void insertBranch(String name, String type)
-    {
-        String mangledVar = getMangledNameBranch(name);
-        scopeTable.insert(mangledVar, type);
     }
 
 }
